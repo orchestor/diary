@@ -120,3 +120,358 @@ print("Accuracy:", accuracy_score(y_test, y_pred))
 # Step 5: Save trained model for deployment
 joblib.dump(automl, "best_model.pkl")
 ```
+
+
+# Batch prediction: 
+
+Making predictions without an endpoint.
+
+1. read data 2. load model 3. make predictions
+
+great for 1. batch score 2. off-line recommendations 3. off-line predicting task 
+
+```python
+import pandas as pd
+import joblib
+
+# Step 1: Load the trained model from disk
+model = joblib.load("model.pkl")  # The model was trained and saved previously
+
+# Step 2: Load batch input data from a CSV file
+input_data = pd.read_csv("data_to_predict.csv")  # Assumes this file contains the same features as used in training
+
+# Step 3: Make predictions on the entire dataset (batch prediction)
+predictions = model.predict(input_data)
+
+# Step 4: Add predictions to the DataFrame
+input_data["prediction"] = predictions
+
+# Step 5: Save results to a new CSV file
+input_data.to_csv("batch_predictions_output.csv", index=False)
+
+print("✅ Batch predictions completed and saved to batch_predictions_output.csv")
+
+```
+
+# BigQuery ML (BQML): 
+BigQuery Machine Learning, allows users to use SQL (or Structured Query
+Language) to implement the model training, evaluation and serving phases.
+
+
+# training
+```sql
+CREATE OR REPLACE MODEL `your_dataset.penguin_classifier_model`
+OPTIONS(
+  model_type='logistic_reg',
+  input_label_cols=['species']
+) AS
+SELECT
+  species,
+  bill_length_mm,
+  bill_depth_mm,
+  flipper_length_mm,
+  body_mass_g
+FROM
+  `bigquery-public-data.ml_datasets.penguins`
+WHERE
+  species IS NOT NULL
+  AND bill_length_mm IS NOT NULL
+  AND bill_depth_mm IS NOT NULL
+  AND flipper_length_mm IS NOT NULL
+  AND body_mass_g IS NOT NULL;
+
+# evaluation
+SELECT *
+FROM
+  ML.EVALUATE(MODEL `your_dataset.penguin_classifier_model`,
+    (
+      SELECT
+        species,
+        bill_length_mm,
+        bill_depth_mm,
+        flipper_length_mm,
+        body_mass_g
+      FROM
+        `bigquery-public-data.ml_datasets.penguins`
+      WHERE
+        species IS NOT NULL
+        AND bill_length_mm IS NOT NULL
+        AND bill_depth_mm IS NOT NULL
+        AND flipper_length_mm IS NOT NULL
+        AND body_mass_g IS NOT NULL
+    )
+  );
+# batch prediction
+SELECT *
+FROM
+  ML.PREDICT(MODEL `your_dataset.penguin_classifier_model`,
+    (
+      SELECT
+        bill_length_mm,
+        bill_depth_mm,
+        flipper_length_mm,
+        body_mass_g
+      FROM
+        `bigquery-public-data.ml_datasets.penguins`
+      WHERE
+        species IS NOT NULL
+        AND bill_length_mm IS NOT NULL
+        AND bill_depth_mm IS NOT NULL
+        AND flipper_length_mm IS NOT NULL
+        AND body_mass_g IS NOT NULL
+    )
+  );
+
+
+
+```
+
+#Classification model: 
+A type of machine learning model that predicts a category from a fixed
+number of categories
+
+```python
+# build a classification model using Random Forest
+clf = RandomForestClassifier(random_state=42)
+clf.fit(X_train, y_train)       # Train the model
+```
+
+
+
+# Custom Training: 
+A code-based solution for building ML models that allows the user to code their
+own ML environment, giving them flexibility and control over the ML pipeline.
+```python
+# Custom Training: A code-based solution for building ML models
+
+import tensorflow as tf
+from tensorflow.keras import layers, models
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 1. Load and Preprocess the MNIST dataset
+(train_images, train_labels), (test_images, test_labels) = tf.keras.datasets.mnist.load_data()
+
+# Normalize the images to the range [0, 1]
+train_images = train_images / 255.0
+test_images = test_images / 255.0
+
+# Flatten the images from 28x28 to 784-dimensional vectors
+train_images = train_images.reshape((train_images.shape[0], 28, 28, 1))
+test_images = test_images.reshape((test_images.shape[0], 28, 28, 1))
+
+# 2. Build a Custom Neural Network Model
+model = models.Sequential([
+    layers.Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1)),
+    layers.MaxPooling2D((2, 2)),
+    layers.Conv2D(64, (3, 3), activation='relu'),
+    layers.MaxPooling2D((2, 2)),
+    layers.Conv2D(64, (3, 3), activation='relu'),
+    layers.Flatten(),
+    layers.Dense(64, activation='relu'),
+    layers.Dense(10, activation='softmax')  # 10 output classes (digits 0-9)
+])
+
+# 3. Compile the model with a custom training loop (custom optimizer, loss, and metrics)
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+
+# 4. Train the model with custom steps
+history = model.fit(train_images, train_labels, epochs=5, batch_size=64, validation_data=(test_images, test_labels))
+
+# 5. Evaluate the model on the test dataset
+test_loss, test_acc = model.evaluate(test_images, test_labels)
+print(f'Test accuracy: {test_acc}')
+
+# 6. Visualize the training process (optional)
+plt.plot(history.history['accuracy'], label='accuracy')
+plt.plot(history.history['val_accuracy'], label = 'val_accuracy')
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+plt.ylim([0, 1])
+plt.legend(loc='lower right')
+plt.show()
+```
+
+# Deep Learning packages: 
+A suite of preinstalled packages that include support for the TensorFlow and PyTorch frameworks.
+```python
+# Import PyTorch
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+
+# Import TensorFlow
+import tensorflow as tf
+from tensorflow.keras import layers, models
+import numpy as np
+```
+
+
+# Pre-trained APIs: 
+Ready-to-use machine learning models requiring no training data.
+why: 1. fast POC 2. 
+```python
+# Import the pipeline function from transformers
+from transformers import pipeline
+
+# Create a pre-trained sentiment analysis pipeline
+# This pipeline downloads a pre-trained model (e.g., "distilbert-base-uncased-finetuned-sst-2-english")
+# and uses it for sentiment analysis.
+sentiment_pipeline = pipeline("sentiment-analysis")
+
+# Input text to be analyzed
+text = "I love this product! It's absolutely fantastic."
+
+# Run the sentiment analysis on the input text
+result = sentiment_pipeline(text)
+
+# Print the result which includes the predicted label and score
+print(result)
+
+```
+
+
+# transfer learning
+a process to use a pre-trained model apated for a new, related task.
+```python
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torchvision import datasets, models, transforms
+from torch.utils.data import DataLoader
+
+# Define data transforms: resize images, convert to tensor, and normalize
+data_transforms = transforms.Compose([
+    transforms.Resize((224, 224)),  # ResNet18 expects 224x224 images
+    transforms.ToTensor(),
+    transforms.Normalize([0.485, 0.456, 0.406],  # Mean for ImageNet
+                         [0.229, 0.224, 0.225])  # Std for ImageNet
+])
+
+# Download and prepare CIFAR10 dataset (as an example of a new, related task)
+train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=data_transforms)
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+
+# Step 1: Load a pre-trained ResNet18 model from torchvision
+model = models.resnet18(pretrained=True)
+
+# Step 2: Freeze all the parameters of the pre-trained model to prevent updating them
+for param in model.parameters():
+    param.requires_grad = False
+
+# Step 3: Replace the final fully connected layer to adapt the model for CIFAR10 (10 classes)
+num_features = model.fc.in_features  # Get the input features of the last layer
+model.fc = nn.Linear(num_features, 10)  # New FC layer with 10 outputs
+
+# Now only the final layer's parameters will be updated during training
+optimizer = optim.Adam(model.fc.parameters(), lr=0.001)
+criterion = nn.CrossEntropyLoss()
+
+# Use GPU if available
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = model.to(device)
+
+# Step 4: Training loop (示例只进行一个 epoch 作为演示)
+model.train()
+for epoch in range(1):
+    running_loss = 0.0
+    for inputs, labels in train_loader:
+        inputs, labels = inputs.to(device), labels.to(device)
+        
+        optimizer.zero_grad()           # Zero the gradients for this batch
+        outputs = model(inputs)           # Forward pass: compute predictions
+        loss = criterion(outputs, labels) # Compute loss against ground truth labels
+        loss.backward()                   # Backpropagation: compute gradients
+        optimizer.step()                  # Update the weights of the final layer
+        
+        running_loss += loss.item()
+    print(f"Epoch {epoch+1}: Loss = {running_loss/len(train_loader):.4f}")
+
+# 保存模型，便于后续部署或推理
+torch.save(model.state_dict(), "finetuned_resnet18_cifar10.pth")
+print("Transfer Learning completed and model saved.")
+
+```
+
+
+# Hyperparameter: 
+A parameter whose value is set before the learning process begins.
+not update during the training process. 
+
+```python
+# Define hyperparameters (set before training begins)
+learning_rate = 0.001   # Learning rate for optimizer
+batch_size = 64         # Number of samples per mini-batch
+num_epochs = 5          # Number of training epochs
+
+
+# or grid search 
+# Define the hyperparameter grid for SVM
+param_grid = {
+    'C': [0.1, 1, 10],             # Regularization parameter
+    'kernel': ['linear', 'rbf'],   # Kernel type: linear or radial basis function
+    'gamma': [0.001, 0.01, 0.1]      # Kernel coefficient for 'rbf'
+}
+```
+
+# Large language models (LLM): 
+General-purpose language models that can be pre-trained and fine-tuned for specific purposes.
+```python
+# Import necessary modules from transformers library
+from transformers import GPT2Tokenizer, GPT2LMHeadModel, Trainer, TrainingArguments, DataCollatorForLanguageModeling, TextDataset
+
+# Step 1: Load pre-trained GPT-2 tokenizer and model
+tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+model = GPT2LMHeadModel.from_pretrained("gpt2")
+
+# Step 2: Prepare dataset for fine-tuning
+# Create a text dataset from a local text file "train.txt" (each line as one training example)
+def load_dataset(file_path, tokenizer, block_size=128):
+    dataset = TextDataset(
+        tokenizer=tokenizer,
+        file_path=file_path,         # Path to your training data file
+        block_size=block_size        # Maximum sequence length for each example
+    )
+    return dataset
+
+train_dataset = load_dataset("train.txt", tokenizer)
+
+# Step 3: Create a data collator that dynamically pads inputs for language modeling
+data_collator = DataCollatorForLanguageModeling(
+    tokenizer=tokenizer,
+    mlm=False  # GPT-2 does not use masked language modeling
+)
+
+# Step 4: Define training arguments (set hyperparameters for fine-tuning)
+training_args = TrainingArguments(
+    output_dir="./gpt2-finetuned",     # Directory to save the fine-tuned model
+    overwrite_output_dir=True,
+    num_train_epochs=3,                # Number of epochs for training
+    per_device_train_batch_size=2,     # Batch size per GPU/CPU device
+    save_steps=500,                    # Save checkpoint every 500 steps
+    save_total_limit=2,                # Only keep the last 2 checkpoints
+    prediction_loss_only=True,
+    logging_steps=100
+)
+
+# Step 5: Initialize the Trainer for fine-tuning the model
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    data_collator=data_collator,
+    train_dataset=train_dataset
+)
+
+# Step 6: Train the model (fine-tuning process)
+trainer.train()
+
+# Optionally, save the fine-tuned model and tokenizer for later use (deployment)
+model.save_pretrained("./gpt2-finetuned")
+tokenizer.save_pretrained("./gpt2-finetuned")
+
+
+```
