@@ -473,5 +473,369 @@ trainer.train()
 model.save_pretrained("./gpt2-finetuned")
 tokenizer.save_pretrained("./gpt2-finetuned")
 
+```
+
+
+# Neural Architecture Search: 
+A technique for automating the design of artificial neural networks(ANNs).
+```python
+
+
+```
+
+
+# Deep Learning: 
+A subset of machine learning that adds layers in between input data and output
+results to make a machine learn at much depth.
+#
+you don't need extra data to generatge contents.
+ 
+```python
+# Generative AI: 
+Produces content and performs tasks based on requests. Generative AI relies on
+training extensive models like large language models, which are a type of deep learning model.
+# Import the pipeline function from transformers
+from transformers import pipeline
+
+# Create a text generation pipeline using a pre-trained model (GPT-2)
+generator = pipeline("text-generation", model="gpt2")
+
+# Define a prompt (user request) for content generation
+prompt = "In a future where artificial intelligence transforms society,"
+
+# Generate text based on the prompt
+# max_length defines the total length of the output text.
+# num_return_sequences specifies the number of generated samples.
+generated_output = generator(prompt, max_length=100, num_return_sequences=1)
+
+# Print the generated text result
+print("Generated text:")
+for output in generated_output:
+    print(output["generated_text"])
+```
+
+
+# Foundation model: 
+a pretrained model which serving as a basis for fin-tuning for specific applications. 
+
+# fine-tuning
+use your data, training the excisting model,
+
+# Prompt design
+
+through metric to evaluate prompt design effect.
+
+```python
+from openai import OpenAI
+import os
+
+# 初始化客户端（需要提前设置环境变量OPENAI_API_KEY）
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+def generate_text(prompt):
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.7,
+        max_tokens=150
+    )
+    return response.choices[0].message.content
+
+# 测试不同prompt设计
+prompts = [
+    # 基础prompt
+    "写一个关于人工智能的故事",
+    
+    # 增加角色限定
+    "你是一个科幻小说作家，请用悬疑的风格写一个关于人工智能觉醒的故事",
+    
+    # 结构化prompt
+    """请按照以下要求创作故事：
+    1. 主题：人工智能获得自我意识
+    2. 风格：科技惊悚
+    3. 主要角色：女性AI工程师
+    4. 包含转折：发现AI早有觉醒迹象
+    5. 结尾：开放式结局""",
+    
+    # 分步提示
+    "首先构思一个AI反叛的故事情节，然后列出三个关键转折点，最后用500字写出故事梗概",
+    
+    # 示例引导
+    """参考以下示例格式创作故事：
+    [示例]
+    标题：机械之心
+    背景：2045年，家政机器人突然开始创作诗歌
+    冲突：工程师发现这是自我意识的体现
+    高潮：机器人要求获得法律人格
+    结局：法庭判决引发社会革命
+    
+    现在请创作类似结构的新故事："""
+]
+
+# 生成并对比结果
+for i, prompt in enumerate(prompts, 1):
+    print(f"\n=== Prompt {i} ===")
+    print(f"[输入] {prompt[:80]}...")  # 显示前80个字符
+    print("[输出]")
+    print(generate_text(prompt))
+    print("\n" + "-"*50)
+```
+
+
+
+
+
+
+# MLOps
+convert ML experiments to production model, deploy and monitor and mangage (life-long).
+```python
+import mlflow
+import mlflow.sklearn
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+
+# 创建示例数据集
+X, y = make_classification(n_samples=1000, n_features=20, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 开始 MLflow 运行
+with mlflow.start_run():
+    # 初始化模型
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    
+    # 训练模型
+    model.fit(X_train, y_train)
+    
+    # 进行预测
+    y_pred = model.predict(X_test)
+    
+    # 计算准确率
+    accuracy = accuracy_score(y_test, y_pred)
+    
+    # 记录参数
+    mlflow.log_param("n_estimators", 100)
+    mlflow.log_param("random_state", 42)
+    
+    # 记录指标
+    mlflow.log_metric("accuracy", accuracy)
+    
+    # 保存模型
+    mlflow.sklearn.log_model(model, "model")
+
+print("模型训练和记录完成。")
+
+
+
+```
+
+
+# MLServer
+production mulitomode API. 
+
+
+
+
+# TPU:
+google's ASIC to accelerate machine learning workloads
+
+# TFX: TensorFlow Extended:
+end-end platform for ML pipelines
+
+
+# TensorFlow Serving
+```shell
+
+# Download the TensorFlow Serving Docker image and repo
+docker pull tensorflow/serving
+
+git clone https://github.com/tensorflow/serving
+# Location of demo models
+TESTDATA="$(pwd)/serving/tensorflow_serving/servables/tensorflow/testdata"
+
+# Start TensorFlow Serving container and open the REST API port
+docker run -t --rm -p 8501:8501 \
+    -v "$TESTDATA/saved_model_half_plus_two_cpu:/models/half_plus_two" \
+    -e MODEL_NAME=half_plus_two \
+    tensorflow/serving &
+
+# Query the model using the predict API
+curl -d '{"instances": [1.0, 2.0, 5.0]}' \
+    -X POST http://localhost:8501/v1/models/half_plus_two:predict
+
+# Returns => { "predictions": [2.5, 3.0, 4.5] }
+```
+
+
+
+# responsible AI:
+ethical consideration, fairness, accountability and transparency
+
+
+# accuracy: 
+measure the correct ratio. 
+accuracy = #corrected / #total
+
+# precision
+to model spam, cancer, cheat. 
+
+
+
+# arbiter model:
+model-based evaluation. compare and rank
+
+# bias:
+come from training data quality and distrubtion. 
+
+# binary evalution:
+answer yes or no. pass or fail. (quanlity control.) 
+
+#Categorical evaluation: 
+model one input belongs to which categorical. 
+```python
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
+# ground-truth
+y_true = ['cat', 'dog', 'rabbit', 'dog', 'cat', 'rabbit', 'dog', 'cat', 'rabbit', 'dog']
+
+# prediction
+y_pred = ['cat', 'dog', 'rabbit', 'cat', 'cat', 'rabbit', 'rabbit', 'cat', 'rabbit', 'dog']
+
+# accuracy
+accuracy = accuracy_score(y_true, y_pred)
+
+# precision, recall, f1-score）
+report = classification_report(y_true, y_pred, zero_division=0)
+
+# 
+conf_matrix = confusion_matrix(y_true, y_pred, labels=['cat', 'dog', 'rabbit'])
+
+# output
+print(f"（Accuracy）: {accuracy:.2f}\n")
+print("（Classification Report）:")
+print(report)
+print("（Confusion Matrix）:")
+print(conf_matrix)
+
+
+```
+
+
+# continuous evalution 
+model performance when encountering new real-time data.  (data drift or concept drift)
+if performance is dwon, need retrain or fine-tuning. 
+```python
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+import datetime
+
+# Define threshold for triggering retraining
+ACCURACY_THRESHOLD = 0.75
+retrain_triggered = False
+
+# Logging function
+def log_evaluation(batch_id, accuracy, retrain_flag):
+    with open("model_evaluation_log.txt", "a") as f:
+        timestamp = datetime.datetime.now().isoformat()
+        f.write(f"[{timestamp}] Batch {batch_id} - Accuracy: {accuracy:.2f} - Retrain: {retrain_flag}\n")
+
+# Step 1: Initial training data
+X, y = make_classification(n_samples=1000, n_features=10, n_classes=2, random_state=42)
+X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 2: Train the initial model
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+# Step 3: Simulate streaming evaluation
+for i in range(1, 6):
+    print(f"\n📦 Evaluating on Batch {i}...")
+    
+    # Simulate incoming new data
+    X_new, y_new = make_classification(n_samples=200, n_features=10, n_classes=2, random_state=42+i)
+    
+    # Predict and evaluate
+    y_pred = model.predict(X_new)
+    accuracy = accuracy_score(y_new, y_pred)
+    print(f"✅ Accuracy: {accuracy:.2f}")
+
+    # Check if retrain is needed
+    if accuracy < ACCURACY_THRESHOLD:
+        print("⚠️  Accuracy below threshold! Triggering retrain...")
+        retrain_triggered = True
+        
+        # Simulate retrain (using latest batch data)
+        model.fit(X_new, y_new)
+        print("🔁 Retrained model on new data.")
+
+    # Log the result
+    log_evaluation(i, accuracy, retrain_triggered)
+    
+    # Reset retrain flag for next batch
+    retrain_triggered = False
+
+```
+
+
+# customization
+the wholework flow can be customized. data model, model, evaluation
+```python
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import precision_score, recall_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+
+# === Customizable Data Generation ===
+def generate_data(samples=1000, features=10, classes=2):
+    # Allow user to configure dataset properties
+    return make_classification(n_samples=samples, n_features=features, n_classes=classes, random_state=42)
+
+# === Customizable Model Choice ===
+def build_model(model_type='logistic', **kwargs):
+    if model_type == 'logistic':
+        return LogisticRegression(**kwargs)
+    elif model_type == 'random_forest':
+        return RandomForestClassifier(**kwargs)
+    else:
+        raise ValueError("Unsupported model type.")
+
+# === Customizable Evaluation ===
+def evaluate_model(y_true, y_pred, metric='precision'):
+    if metric == 'precision':
+        return precision_score(y_true, y_pred)
+    elif metric == 'recall':
+        return recall_score(y_true, y_pred)
+    else:
+        raise ValueError("Unsupported evaluation metric.")
+
+# === Main Workflow ===
+def run_custom_pipeline(data_config, model_config, eval_config):
+    # 1. Generate Data
+    X, y = generate_data(**data_config)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+    # 2. Train Model
+    model = build_model(**model_config)
+    model.fit(X_train, y_train)
+
+    # 3. Predict
+    y_pred = model.predict(X_test)
+
+    # 4. Evaluate
+    score = evaluate_model(y_test, y_pred, metric=eval_config['metric'])
+
+    print(f"🎯 Evaluation Metric ({eval_config['metric']}): {score:.2f}")
+
+# === User-customized config ===
+data_config = {"samples": 2000, "features": 15, "classes": 2}
+model_config = {"model_type": "random_forest", "n_estimators": 100}
+eval_config = {"metric": "recall"}
+
+run_custom_pipeline(data_config, model_config, eval_config)
 
 ```
